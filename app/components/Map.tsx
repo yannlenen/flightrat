@@ -38,17 +38,23 @@ const LIGHT_STYLE_URL =
 function patchStyleFrench(style: Record<string, unknown>): Record<string, unknown> {
   const layers = style.layers as Record<string, unknown>[];
   if (!layers) return style;
+  const frExpr = ["coalesce", ["get", "name:fr"], ["get", "name"]];
   for (const layer of layers) {
     const layout = layer.layout as Record<string, unknown> | undefined;
     if (!layout) continue;
     const tf = layout["text-field"];
-    if (typeof tf === "string" && tf.includes("{name}")) {
-      layout["text-field"] = ["coalesce", ["get", "name:fr"], ["get", "name"]];
-    } else if (Array.isArray(tf)) {
-      // Handle expression-style text-field that references "name"
+    if (typeof tf === "string" && (tf.includes("{name}") || tf.includes("{name_en}"))) {
+      layout["text-field"] = frExpr;
+    } else if (tf && typeof tf === "object" && !Array.isArray(tf)) {
+      // Stops format: {"stops": [[z1, "{name_en}"], [z2, "{name}"]]}
       const s = JSON.stringify(tf);
-      if (s.includes('"name"')) {
-        layout["text-field"] = ["coalesce", ["get", "name:fr"], ["get", "name"]];
+      if (s.includes("{name") || s.includes("name_en") || s.includes('"name"')) {
+        layout["text-field"] = frExpr;
+      }
+    } else if (Array.isArray(tf)) {
+      const s = JSON.stringify(tf);
+      if (s.includes('"name"') || s.includes('"name_en"') || s.includes("{name")) {
+        layout["text-field"] = frExpr;
       }
     }
   }
