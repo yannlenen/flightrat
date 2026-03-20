@@ -53,7 +53,7 @@ export default function HomePage() {
   const [airportPickerOpen, setAirportPickerOpen] = useState(false);
 
   // Intro animation (only on first load)
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro] = useState(true);
   const [introReady, setIntroReady] = useState(false);
 
   // Confetti on best deal tap

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useCallback, useEffect, useState } from "react";
-import { motion, useMotionValue, animate, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { formatPrice } from "@/lib/utils";
 
 interface BudgetSliderProps {

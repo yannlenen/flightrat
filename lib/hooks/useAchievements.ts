@@ -32,16 +32,6 @@ function saveUnlocked(ids: string[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
 }
 
-function getViewedCount(): number {
-  if (typeof window === "undefined") return 0;
-  try {
-    const viewed = JSON.parse(localStorage.getItem(VIEWED_KEY) || "[]");
-    return viewed.length;
-  } catch {
-    return 0;
-  }
-}
-
 function addViewed(iata: string) {
   try {
     const viewed: string[] = JSON.parse(localStorage.getItem(VIEWED_KEY) || "[]");

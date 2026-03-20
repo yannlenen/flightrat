@@ -31,7 +31,6 @@ export default function BottomSheet({ children, snap, onSnapChange }: BottomShee
   const y = useMotionValue(0);
   const windowH = typeof window !== "undefined" ? window.innerHeight : 800;
 
-  const snapY = getSnapY(snap, windowH);
   const collapsedY = getSnapY("collapsed", windowH);
   const halfY = getSnapY("half", windowH);
   const fullY = getSnapY("full", windowH);
