@@ -138,7 +138,7 @@ export default function HomePage() {
     (flight: FlightDestination | null, event?: MouseEvent | React.MouseEvent) => {
       setSelectedFlight(flight);
       if (isMobile && flight) {
-        setSheetSnap("half");
+        setSheetSnap("full");
       }
       if (flight) {
         checkViewed(flight.destination.iata);
