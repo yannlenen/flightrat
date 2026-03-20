@@ -13,16 +13,14 @@ interface BottomSheetProps {
 
 const COLLAPSED_HEIGHT = 56;
 const HALF_RATIO = 0.45;
-const FULL_RATIO = 0.9;
 
 function getSnapY(snap: SheetSnap, windowH: number): number {
   switch (snap) {
     case "collapsed":
       return windowH - COLLAPSED_HEIGHT;
     case "half":
-      return windowH * (1 - HALF_RATIO);
     case "full":
-      return windowH * (1 - FULL_RATIO);
+      return windowH * (1 - HALF_RATIO);
   }
 }
 
@@ -33,10 +31,9 @@ export default function BottomSheet({ children, snap, onSnapChange }: BottomShee
 
   const collapsedY = getSnapY("collapsed", windowH);
   const halfY = getSnapY("half", windowH);
-  const fullY = getSnapY("full", windowH);
 
   // Darken overlay when sheet is up
-  const overlayOpacity = useTransform(y, [collapsedY, halfY, fullY], [0, 0.2, 0.4]);
+  const overlayOpacity = useTransform(y, [collapsedY, halfY], [0, 0.2]);
 
   const handleDragEnd = useCallback(
     (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -45,26 +42,19 @@ export default function BottomSheet({ children, snap, onSnapChange }: BottomShee
 
       // If flung fast, snap in direction
       if (velocity > 400) {
-        if (snap === "full") onSnapChange("half");
-        else onSnapChange("collapsed");
+        onSnapChange("collapsed");
         return;
       }
       if (velocity < -400) {
-        if (snap === "collapsed") onSnapChange("half");
-        else onSnapChange("full");
+        onSnapChange("half");
         return;
       }
 
       // Otherwise snap to nearest
-      const distances = [
-        { snap: "collapsed" as const, dist: Math.abs(currentY - collapsedY) },
-        { snap: "half" as const, dist: Math.abs(currentY - halfY) },
-        { snap: "full" as const, dist: Math.abs(currentY - fullY) },
-      ];
-      distances.sort((a, b) => a.dist - b.dist);
-      onSnapChange(distances[0].snap);
+      const midPoint = (collapsedY + halfY) / 2;
+      onSnapChange(currentY > midPoint ? "collapsed" : "half");
     },
-    [snap, y, collapsedY, halfY, fullY, onSnapChange]
+    [y, collapsedY, halfY, onSnapChange]
   );
 
   // Animate to snap position
@@ -92,7 +82,7 @@ export default function BottomSheet({ children, snap, onSnapChange }: BottomShee
           touchAction: "none",
         }}
         drag="y"
-        dragConstraints={{ top: fullY, bottom: collapsedY }}
+        dragConstraints={{ top: halfY, bottom: collapsedY }}
         dragElastic={0.1}
         onDragEnd={handleDragEnd}
       >
