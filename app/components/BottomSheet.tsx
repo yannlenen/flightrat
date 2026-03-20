@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useCallback, ReactNode } from "react";
+import { useRef, useCallback, useEffect, useState, ReactNode } from "react";
 import { motion, useMotionValue, useTransform, animate, PanInfo } from "framer-motion";
 
-export type SheetSnap = "collapsed" | "half" | "full";
+export type SheetSnap = "collapsed" | "open";
 
 interface BottomSheetProps {
   children: ReactNode;
@@ -12,56 +12,56 @@ interface BottomSheetProps {
 }
 
 const COLLAPSED_HEIGHT = 56;
-const HALF_RATIO = 0.45;
-const FULL_RATIO = 0.75;
-
-function getSnapY(snap: SheetSnap, windowH: number): number {
-  switch (snap) {
-    case "collapsed":
-      return windowH - COLLAPSED_HEIGHT;
-    case "half":
-      return windowH * (1 - HALF_RATIO);
-    case "full":
-      return windowH * (1 - FULL_RATIO);
-  }
-}
+const PADDING = 60; // handle + bottom padding
 
 export default function BottomSheet({ children, snap, onSnapChange }: BottomSheetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const y = useMotionValue(0);
   const windowH = typeof window !== "undefined" ? window.innerHeight : 800;
+  const [contentHeight, setContentHeight] = useState(300);
 
-  const collapsedY = getSnapY("collapsed", windowH);
-  const halfY = getSnapY("half", windowH);
-  const fullY = getSnapY("full", windowH);
+  // Measure content height
+  useEffect(() => {
+    if (!contentRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContentHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(contentRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const collapsedY = windowH - COLLAPSED_HEIGHT;
+  // Sheet opens just enough to show content, capped at 85% of screen
+  const openHeight = Math.min(contentHeight + PADDING, windowH * 0.85);
+  const openY = windowH - openHeight;
 
   // Darken overlay when sheet is up
-  const overlayOpacity = useTransform(y, [collapsedY, halfY, fullY], [0, 0.15, 0.3]);
+  const overlayOpacity = useTransform(y, [collapsedY, openY], [0, 0.2]);
 
   const handleDragEnd = useCallback(
     (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       const currentY = y.get();
       const velocity = info.velocity.y;
 
-      // Swipe down → collapse directly, swipe up → open to current max
       if (velocity > 400) {
         onSnapChange("collapsed");
         return;
       }
       if (velocity < -400) {
-        onSnapChange("full");
+        onSnapChange("open");
         return;
       }
 
-      // Otherwise snap to nearest between collapsed and full
-      const midPoint = (collapsedY + fullY) / 2;
-      onSnapChange(currentY > midPoint ? "collapsed" : "full");
+      const midPoint = (collapsedY + openY) / 2;
+      onSnapChange(currentY > midPoint ? "collapsed" : "open");
     },
-    [snap, y, collapsedY, halfY, fullY, onSnapChange]
+    [y, collapsedY, openY, onSnapChange]
   );
 
-  // Animate to snap position
-  const targetY = getSnapY(snap, windowH);
+  const targetY = snap === "open" ? openY : collapsedY;
   animate(y, targetY, { type: "spring", damping: 30, stiffness: 300 });
 
   return (
@@ -85,7 +85,7 @@ export default function BottomSheet({ children, snap, onSnapChange }: BottomShee
           touchAction: "none",
         }}
         drag="y"
-        dragConstraints={{ top: fullY, bottom: collapsedY }}
+        dragConstraints={{ top: openY, bottom: collapsedY }}
         dragElastic={0.1}
         onDragEnd={handleDragEnd}
       >
@@ -103,7 +103,9 @@ export default function BottomSheet({ children, snap, onSnapChange }: BottomShee
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-8">
-            {children}
+            <div ref={contentRef}>
+              {children}
+            </div>
           </div>
         </div>
       </motion.div>
