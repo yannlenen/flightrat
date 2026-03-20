@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Airport } from "@/lib/types";
-import { POPULAR_AIRPORTS } from "@/lib/static-data";
+import { POPULAR_AIRPORTS } from "@/lib/static-data"; // for popular pills only
 
 interface AirportPickerProps {
   isOpen: boolean;
@@ -19,12 +19,12 @@ export default function AirportPicker({
   selectedAirport,
 }: AirportPickerProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Airport[]>(POPULAR_AIRPORTS.slice(0, 12));
+  const [results, setResults] = useState<Airport[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const search = useCallback(async (keyword: string) => {
     if (keyword.length < 1) {
-      setResults(POPULAR_AIRPORTS.slice(0, 12));
+      setResults([]);
       return;
     }
     try {
@@ -32,12 +32,7 @@ export default function AirportPicker({
       const data: Airport[] = await res.json();
       setResults(data.slice(0, 12));
     } catch {
-      const filtered = POPULAR_AIRPORTS.filter(
-        (a) =>
-          a.city.toLowerCase().includes(keyword.toLowerCase()) ||
-          a.iata.toLowerCase().includes(keyword.toLowerCase())
-      );
-      setResults(filtered.slice(0, 12));
+      setResults([]);
     }
   }, []);
 
@@ -49,7 +44,7 @@ export default function AirportPicker({
   useEffect(() => {
     if (isOpen) {
       setQuery("");
-      setResults(POPULAR_AIRPORTS.slice(0, 12));
+      setResults([]);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
@@ -150,6 +145,16 @@ export default function AirportPicker({
 
           {/* Results list */}
           <div className="flex-1 overflow-y-auto px-4">
+            {query.length > 0 && results.length === 0 && (
+              <p className="text-sm text-center py-8" style={{ color: "var(--text-muted)" }}>
+                Aucun aéroport trouvé
+              </p>
+            )}
+            {query.length === 0 && results.length === 0 && (
+              <p className="text-sm text-center py-8" style={{ color: "var(--text-muted)" }}>
+                Tape le nom d&apos;une ville ou un code aéroport
+              </p>
+            )}
             {results.map((airport) => (
               <button
                 key={airport.iata}

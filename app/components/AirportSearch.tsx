@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Airport } from "@/lib/types";
-import { POPULAR_AIRPORTS } from "@/lib/static-data";
 
 interface AirportSearchProps {
   selectedAirport: Airport;
@@ -22,7 +21,7 @@ export default function AirportSearch({
 
   const search = useCallback(async (keyword: string) => {
     if (keyword.length < 1) {
-      setResults(POPULAR_AIRPORTS.slice(0, 8));
+      setResults([]);
       return;
     }
 
@@ -31,12 +30,7 @@ export default function AirportSearch({
       const data: Airport[] = await res.json();
       setResults(data.slice(0, 8));
     } catch {
-      const filtered = POPULAR_AIRPORTS.filter(
-        (a) =>
-          a.city.toLowerCase().includes(keyword.toLowerCase()) ||
-          a.iata.toLowerCase().includes(keyword.toLowerCase())
-      );
-      setResults(filtered.slice(0, 8));
+      setResults([]);
     }
   }, []);
 
@@ -61,7 +55,6 @@ export default function AirportSearch({
         className="glass rounded-xl px-4 py-3 flex items-center gap-3 cursor-text"
         onClick={() => {
           setIsOpen(true);
-          setResults(POPULAR_AIRPORTS.slice(0, 8));
           inputRef.current?.focus();
         }}
       >
