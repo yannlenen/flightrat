@@ -22,7 +22,7 @@ interface MapProps {
 }
 
 function getPriceTag(price: number): string {
-  if (price < 50) return "INSANE";
+  if (price < 50) return "DINGUE";
   if (price < 150) return "TOP DEAL";
   if (price < 300) return "BON PRIX";
   if (price < 500) return "CORRECT";

@@ -48,7 +48,7 @@ export function formatPrice(price: number, currency = "EUR"): string {
 }
 
 export function getPriceLabel(price: number): string {
-  if (price < 50) return "Insane";
+  if (price < 50) return "Dingue";
   if (price < 150) return "Top deal";
   if (price < 300) return "Bon prix";
   if (price < 500) return "Correct";
