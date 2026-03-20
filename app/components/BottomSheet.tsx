@@ -43,10 +43,9 @@ export default function BottomSheet({ children, snap, onSnapChange }: BottomShee
       const currentY = y.get();
       const velocity = info.velocity.y;
 
-      // If flung fast, snap in direction
+      // Swipe down → collapse directly, swipe up → open to current max
       if (velocity > 400) {
-        if (snap === "full") onSnapChange("half");
-        else onSnapChange("collapsed");
+        onSnapChange("collapsed");
         return;
       }
       if (velocity < -400) {
@@ -55,14 +54,9 @@ export default function BottomSheet({ children, snap, onSnapChange }: BottomShee
         return;
       }
 
-      // Otherwise snap to nearest
-      const distances = [
-        { snap: "collapsed" as const, dist: Math.abs(currentY - collapsedY) },
-        { snap: "half" as const, dist: Math.abs(currentY - halfY) },
-        { snap: "full" as const, dist: Math.abs(currentY - fullY) },
-      ];
-      distances.sort((a, b) => a.dist - b.dist);
-      onSnapChange(distances[0].snap);
+      // Otherwise snap to nearest between collapsed and current target
+      const midPoint = (collapsedY + Math.min(halfY, fullY)) / 2;
+      onSnapChange(currentY > midPoint ? "collapsed" : snap === "full" ? "full" : "half");
     },
     [snap, y, collapsedY, halfY, fullY, onSnapChange]
   );
