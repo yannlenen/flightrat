@@ -209,50 +209,100 @@ export default function HomePage() {
 
         {/* Bottom Sheet */}
         <BottomSheet snap={sheetSnap} onSnapChange={setSheetSnap}>
-          {/* Summary header */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-sm" style={{ color: "var(--text-muted)" }}>
-              <span className="font-bold font-display" style={{ color: "var(--text-primary)" }}>
-                {filteredFlights.length}
-              </span>{" "}
-              destinations depuis{" "}
-              <span style={{ color: "var(--text-secondary)" }}>{origin.city}</span>
-            </div>
-            <button
-              onClick={() => setFiltersOpen(!filtersOpen)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-colors hover:bg-white/10"
-              style={{ color: "var(--text-muted)", background: "rgba(255,255,255,0.05)" }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              Filtres
-            </button>
-          </div>
-
-          {/* Inline filters (mobile) */}
-          <AnimatePresence>
-            {filtersOpen && (
-              <div className="mb-4">
-                <FilterPanel
-                  filters={filters}
-                  onChange={setFilters}
-                  isOpen={true}
-                  onToggle={() => setFiltersOpen(false)}
-                />
+          {selectedFlight ? (
+            <DestinationList
+              flights={filteredFlights}
+              selectedFlight={selectedFlight}
+              onSelectFlight={handleSelectFlight}
+              origin={origin.iata}
+              loading={loading}
+              onShare={() => setShareOpen(true)}
+            />
+          ) : (
+            <>
+              {/* Summary */}
+              <div className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
+                <span className="font-bold font-display" style={{ color: "var(--text-primary)" }}>
+                  {filteredFlights.length}
+                </span>{" "}
+                destinations depuis{" "}
+                <span style={{ color: "var(--text-secondary)" }}>{origin.city}</span>
               </div>
-            )}
-          </AnimatePresence>
 
-          {/* Destination list */}
-          <DestinationList
-            flights={filteredFlights}
-            selectedFlight={selectedFlight}
-            onSelectFlight={handleSelectFlight}
-            origin={origin.iata}
-            loading={loading}
-            onShare={() => setShareOpen(true)}
-          />
+              {/* Filters — always visible */}
+              <div className="space-y-4">
+                {/* Durée du séjour */}
+                <div>
+                  <label className="text-xs uppercase tracking-wider font-medium mb-2 block" style={{ color: "var(--text-muted)" }}>
+                    Durée du séjour
+                  </label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[
+                      { value: "any", label: "Tous" },
+                      { value: "1-3", label: "1-3 j" },
+                      { value: "4-7", label: "4-7 j" },
+                      { value: "8-14", label: "1-2 sem" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setFilters({ ...filters, stayDuration: opt.value as FilterState["stayDuration"] })}
+                        className={`text-xs py-2 rounded-lg transition-all font-medium ${
+                          filters.stayDuration === opt.value ? "bg-accent text-white shadow-sm" : ""
+                        }`}
+                        style={filters.stayDuration !== opt.value ? { background: "rgba(255,255,255,0.05)", color: "var(--text-muted)" } : {}}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mois de départ */}
+                <div>
+                  <label className="text-xs uppercase tracking-wider font-medium mb-2 block" style={{ color: "var(--text-muted)" }}>
+                    Mois de départ
+                  </label>
+                  <select
+                    value={filters.departureMonth}
+                    onChange={(e) => setFilters({ ...filters, departureMonth: e.target.value })}
+                    className="w-full rounded-lg px-3 py-2.5 text-sm outline-none appearance-none cursor-pointer"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    <option value="flexible">Dates flexibles</option>
+                    <option value="2026-04">Avril 2026</option>
+                    <option value="2026-05">Mai 2026</option>
+                    <option value="2026-06">Juin 2026</option>
+                    <option value="2026-07">Juillet 2026</option>
+                    <option value="2026-08">Août 2026</option>
+                    <option value="2026-09">Septembre 2026</option>
+                  </select>
+                </div>
+
+                {/* Vols directs */}
+                <div className="flex items-center justify-between">
+                  <label className="text-xs uppercase tracking-wider font-medium" style={{ color: "var(--text-muted)" }}>
+                    Vols directs uniquement
+                  </label>
+                  <button
+                    onClick={() => setFilters({ ...filters, directOnly: !filters.directOnly })}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                      filters.directOnly ? "bg-accent" : ""
+                    }`}
+                    style={!filters.directOnly ? { background: "rgba(255,255,255,0.15)" } : {}}
+                  >
+                    <div
+                      className="absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all"
+                      style={{ left: filters.directOnly ? 24 : 4 }}
+                    />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </BottomSheet>
 
         {/* Airport Picker modal */}
