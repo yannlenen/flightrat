@@ -49,14 +49,13 @@ export default function BottomSheet({ children, snap, onSnapChange }: BottomShee
         return;
       }
       if (velocity < -400) {
-        if (snap === "collapsed") onSnapChange("half");
-        else onSnapChange("full");
+        onSnapChange("full");
         return;
       }
 
-      // Otherwise snap to nearest between collapsed and current target
-      const midPoint = (collapsedY + Math.min(halfY, fullY)) / 2;
-      onSnapChange(currentY > midPoint ? "collapsed" : snap === "full" ? "full" : "half");
+      // Otherwise snap to nearest between collapsed and full
+      const midPoint = (collapsedY + fullY) / 2;
+      onSnapChange(currentY > midPoint ? "collapsed" : "full");
     },
     [snap, y, collapsedY, halfY, fullY, onSnapChange]
   );
